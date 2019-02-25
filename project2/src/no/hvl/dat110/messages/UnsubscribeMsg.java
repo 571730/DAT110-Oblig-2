@@ -15,4 +15,9 @@ public class UnsubscribeMsg extends Message {
     public void setUnsubTo(String unsubTo) {
         this.unsubTo = unsubTo;
     }
+
+    @Override
+    public String toString() {
+        return super.toString() + " unsubscribe to: "  + this.unsubTo;
+    }
 }
