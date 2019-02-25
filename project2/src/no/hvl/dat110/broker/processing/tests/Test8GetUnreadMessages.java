@@ -12,7 +12,7 @@ public class Test8GetUnreadMessages extends Test0Base {
     @Test
     public void test() {
 
-        broker.setMaxAccept(2);
+        broker.setMaxAccept(3);
 
         Client client1 = new Client("client1", BROKER_TESTHOST, BROKER_TESTPORT);
 
@@ -42,10 +42,25 @@ public class Test8GetUnreadMessages extends Test0Base {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-
+        client2.disconnect();
+        // allow broker to process disconnect
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         client1.publish(TOPIC, "message from client on topic");
 
         PublishMsg msg1 = (PublishMsg) client1.receive();
+
+        // allow broker to process
+        try {
+            Thread.sleep(2000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        client2.connect();
         PublishMsg msg2 = (PublishMsg) client2.receive();
 
         client1.disconnect();

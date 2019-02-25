@@ -89,14 +89,18 @@ public class Dispatcher extends Stopable {
 		Logger.log("onConnect:" + msg.toString());
 
 		storage.addClientSession(user, connection);
-		// Getting potential unread messages
+		// Getting potential unread messages if user is on disconnected list
         // Then deleting the message from buffer
-        for (String id : storage.getDisconnectedClients().get(user)){
-            MessageUtils.send(connection, storage.bufferedMessages.get(id));
-            storage.bufferedMessages.remove(id);
+        if (storage.getDisconnectedClients().containsKey(user)){
+            for (String id : storage.getDisconnectedClients().get(user)){
+                MessageUtils.send(connection, storage.bufferedMessages.get(id));
+                Logger.log("sending unread message to " + user);
+                storage.bufferedMessages.remove(id);
+            }
+            // Taking user off the disconnected list
+            Logger.log("removing " + user + " from the disconnected list");
+            storage.disconnectedClients.remove(user);
         }
-        // Taking user off the disconnected list
-        storage.disconnectedClients.remove(user);
 	}
 
 	// called by dispatch upon receiving a disconnect message 
