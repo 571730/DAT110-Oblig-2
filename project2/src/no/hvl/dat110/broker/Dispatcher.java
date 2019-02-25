@@ -100,7 +100,7 @@ public class Dispatcher extends Stopable {
 		Logger.log("onDisconnect:" + msg.toString());
 
 		storage.removeClientSession(user);
-
+		storage.addToDisconnected(user);
 	}
 
 	public void onCreateTopic(CreateTopicMsg msg) {
@@ -138,7 +138,6 @@ public class Dispatcher extends Stopable {
 
 		Logger.log("onPublish:" + msg.toString());
 
-		// TODO: publish the message to clients subscribed to the topic
 		Collection<ClientSession> clients = storage.getSessions();
 
 		for (ClientSession client : clients){
@@ -146,5 +145,8 @@ public class Dispatcher extends Stopable {
 				MessageUtils.send(client.getConnection(), msg);
 			}
 		}
+
+		// Stores the message if any offline clients subscribe to the topic
+		for ()
 	}
 }

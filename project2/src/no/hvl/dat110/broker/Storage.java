@@ -1,22 +1,25 @@
 package no.hvl.dat110.broker;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+import no.hvl.dat110.client.Client;
 import no.hvl.dat110.common.Logger;
+import no.hvl.dat110.messages.Message;
 import no.hvl.dat110.messagetransport.Connection;
 
 public class Storage {
 
 	protected ConcurrentHashMap<String, Set<String>> subscriptions;
 	protected ConcurrentHashMap<String, ClientSession> clients;
+	protected ArrayList<String> disconnecctedClients;
+	protected ConcurrentHashMap<String, Message> bufferedMessages;
 
 	public Storage() {
 		subscriptions = new ConcurrentHashMap<String, Set<String>>();
 		clients = new ConcurrentHashMap<String, ClientSession>();
+		disconnecctedClients = new ArrayList<>();
+		bufferedMessages = new ConcurrentHashMap<>();
 	}
 
 	public Collection<ClientSession> getSessions() {
@@ -44,6 +47,14 @@ public class Storage {
 
 	public void addClientSession(String user, Connection connection) {
 		clients.put(user, new ClientSession(user, connection));
+	}
+
+	public void addToDisconnected(String user){
+		disconnecctedClients.add(user);
+	}
+
+	public void removeFromDisconnected(String user){
+		disconnecctedClients.remove(user);
 	}
 
 	public void removeClientSession(String user) {
