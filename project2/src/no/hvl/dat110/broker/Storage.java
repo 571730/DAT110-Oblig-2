@@ -2,6 +2,7 @@ package no.hvl.dat110.broker;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -50,7 +51,7 @@ public class Storage {
 	}
 
 	public void createTopic(String topic) {
-		subscriptions.put(topic, Collections.emptySet());
+		subscriptions.put(topic, new HashSet<>());
 	}
 
 	public void deleteTopic(String topic) {
