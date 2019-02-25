@@ -12,7 +12,7 @@ public class PublishMsg extends Message {
 
     @Override
     public String toString() {
-        return super.toString() + " message published to topic: " + this.topic;
+        return super.toString() + " message published to topic: " + this.topic + ", " + this.message;
     }
 
     public String getTopic() {
