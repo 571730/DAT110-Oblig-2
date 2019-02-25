@@ -3,8 +3,6 @@ package no.hvl.dat110.broker;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-import no.hvl.dat110.client.Client;
-import no.hvl.dat110.common.Logger;
 import no.hvl.dat110.messages.Message;
 import no.hvl.dat110.messagetransport.Connection;
 
@@ -12,14 +10,16 @@ public class Storage {
 
 	protected ConcurrentHashMap<String, Set<String>> subscriptions;
 	protected ConcurrentHashMap<String, ClientSession> clients;
-	protected ArrayList<String> disconnecctedClients;
+	//protected ArrayList<String> disconnectedClients;
+    protected ConcurrentHashMap<String, Set<String>> disconnectedClients;
 	protected ConcurrentHashMap<String, Message> bufferedMessages;
 
 	public Storage() {
 		subscriptions = new ConcurrentHashMap<String, Set<String>>();
 		clients = new ConcurrentHashMap<String, ClientSession>();
-		disconnecctedClients = new ArrayList<>();
-		bufferedMessages = new ConcurrentHashMap<>();
+		//disconnectedClients = new ArrayList<>();
+		disconnectedClients = new ConcurrentHashMap<>();
+        bufferedMessages = new ConcurrentHashMap<>();
 	}
 
 	public Collection<ClientSession> getSessions() {
@@ -32,7 +32,15 @@ public class Storage {
 
 	}
 
-	public ClientSession getSession(String user) {
+    public ConcurrentHashMap<String, Set<String>> getDisconnectedClients() {
+        return disconnectedClients;
+    }
+
+    public ConcurrentHashMap<String, Message> getBufferedMessages() {
+        return bufferedMessages;
+    }
+
+    public ClientSession getSession(String user) {
 
 		ClientSession session = clients.get(user);
 
@@ -50,12 +58,18 @@ public class Storage {
 	}
 
 	public void addToDisconnected(String user){
-		disconnecctedClients.add(user);
+		disconnectedClients.put(user, new HashSet<>());
 	}
 
 	public void removeFromDisconnected(String user){
-		disconnecctedClients.remove(user);
+		disconnectedClients.remove(user);
 	}
+
+	public void addToBufferAndToUnread(String topic, Message msg, String user){
+        String uniqueID = UUID.randomUUID().toString();
+        disconnectedClients.get(user).add(uniqueID);
+	    bufferedMessages.put(uniqueID, msg);
+    }
 
 	public void removeClientSession(String user) {
 		clients.remove(user);

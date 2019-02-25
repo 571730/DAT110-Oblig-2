@@ -1,7 +1,7 @@
 package no.hvl.dat110.broker;
 
-import java.util.Set;
 import java.util.Collection;
+import java.util.concurrent.ConcurrentHashMap;
 
 import no.hvl.dat110.common.Logger;
 import no.hvl.dat110.common.Stopable;
@@ -89,7 +89,14 @@ public class Dispatcher extends Stopable {
 		Logger.log("onConnect:" + msg.toString());
 
 		storage.addClientSession(user, connection);
-
+		// Getting potential unread messages
+        // Then deleting the message from buffer
+        for (String id : storage.getDisconnectedClients().get(user)){
+            MessageUtils.send(connection, storage.bufferedMessages.get(id));
+            storage.bufferedMessages.remove(id);
+        }
+        // Taking user off the disconnected list
+        storage.disconnectedClients.remove(user);
 	}
 
 	// called by dispatch upon receiving a disconnect message 
@@ -145,8 +152,21 @@ public class Dispatcher extends Stopable {
 				MessageUtils.send(client.getConnection(), msg);
 			}
 		}
-
+        // Stores the message if subscribed user is offline
+		for (String subbedUser : storage.getSubscribers(msg.getTopic())){
+		    if (storage.disconnectedClients.containsKey(subbedUser)){
+		        storage.addToBufferAndToUnread(msg.getTopic(), msg, subbedUser);
+            }
+        }
 		// Stores the message if any offline clients subscribe to the topic
-		for ()
+//		for (String user : storage.getDisconnectedClients()){
+//            if (storage.subscriptions.get(msg.getTopic()).contains(user)){
+//                storage.addToBufferAndToUnread(msg.getTopic(), msg, user);
+//            }
+//        }
 	}
+
+//	public boolean isUserSubscribed(String user, String topic){
+//        for (String u : storage.ge)
+//    }
 }
