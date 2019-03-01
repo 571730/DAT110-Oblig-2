@@ -88,19 +88,25 @@ public class Dispatcher extends Stopable {
 
         Logger.log("onConnect:" + msg.toString());
 
-        storage.addClientSession(user, connection);
-        // Getting potential unread messages if user is on disconnected list
-        // Then deleting the message from buffer
-        if (storage.getDisconnectedClients().containsKey(user)) {
-            for (String id : storage.getDisconnectedClients().get(user)) {
-                MessageUtils.send(connection, storage.bufferedMessages.get(id));
-                Logger.log("sending unread message to " + user);
-                storage.bufferedMessages.remove(id);
+        try{
+            storage.addClientSession(user, connection);
+            // Getting potential unread messages if user is on disconnected list
+            // Then deleting the message from buffer
+            if (storage.getDisconnectedClients().containsKey(user)) {
+                for (String id : storage.getDisconnectedClients().get(user)) {
+                    MessageUtils.send(connection, storage.bufferedMessages.get(id));
+                    Logger.log("sending unread message to " + user);
+                    storage.bufferedMessages.remove(id);
+                }
+                // Taking user off the disconnected list
+                Logger.log("removing " + user + " from the disconnected list");
+                storage.disconnectedClients.remove(user);
             }
-            // Taking user off the disconnected list
-            Logger.log("removing " + user + " from the disconnected list");
-            storage.disconnectedClients.remove(user);
+        }catch (NullPointerException e){
+            e.printStackTrace();
+            Logger.log("Error");
         }
+
     }
 
     // called by dispatch upon receiving a disconnect message
@@ -109,39 +115,59 @@ public class Dispatcher extends Stopable {
         String user = msg.getUser();
 
         Logger.log("onDisconnect:" + msg.toString());
-
-        storage.removeClientSession(user);
-        storage.addToDisconnected(user);
+        try{
+            storage.removeClientSession(user);
+            storage.addToDisconnected(user);
+        }catch (NullPointerException e){
+            e.printStackTrace();
+            Logger.log("Error");
+        }
     }
 
     public void onCreateTopic(CreateTopicMsg msg) {
 
         Logger.log("onCreateTopic:" + msg.toString());
-
-        storage.createTopic(msg.getTopic());
+        try{
+            storage.createTopic(msg.getTopic());
+        }catch (NullPointerException e){
+            e.printStackTrace();
+            Logger.log("Error");
+        }
 
     }
 
     public void onDeleteTopic(DeleteTopicMsg msg) {
 
         Logger.log("onDeleteTopic:" + msg.toString());
-
-        storage.deleteTopic(msg.getTopicToBeDeleted());
+        try{
+            storage.deleteTopic(msg.getTopicToBeDeleted());
+        }catch (NullPointerException e){
+            e.printStackTrace();
+            Logger.log("Error");
+        }
     }
 
     public void onSubscribe(SubscribeMsg msg) {
 
         Logger.log("onSubscribe:" + msg.toString());
-
-        storage.addSubscriber(msg.getUser(), msg.getSubscribeTo());
+        try{
+            storage.addSubscriber(msg.getUser(), msg.getSubscribeTo());
+        }catch (NullPointerException e){
+            e.printStackTrace();
+            Logger.log("Error");
+        }
 
     }
 
     public void onUnsubscribe(UnsubscribeMsg msg) {
 
         Logger.log("onUnsubscribe:" + msg.toString());
-
-        storage.removeSubscriber(msg.getUser(), msg.getUnsubTo());
+        try{
+            storage.removeSubscriber(msg.getUser(), msg.getUnsubTo());
+        }catch (NullPointerException e){
+            e.printStackTrace();
+            Logger.log("Error");
+        }
 
     }
 
@@ -150,17 +176,21 @@ public class Dispatcher extends Stopable {
         Logger.log("onPublish:" + msg.toString());
 
         Collection<ClientSession> clients = storage.getSessions();
-
-        for (ClientSession client : clients) {
-            if (storage.subscriptions.get(msg.getTopic()).contains(client.getUser())) {
-                MessageUtils.send(client.getConnection(), msg);
+        try{
+            for (ClientSession client : clients) {
+                if (storage.subscriptions.get(msg.getTopic()).contains(client.getUser())) {
+                    MessageUtils.send(client.getConnection(), msg);
+                }
             }
-        }
-        // Stores the message if subscribed user is offline
-        for (String subbedUser : storage.getSubscribers(msg.getTopic())) {
-            if (storage.disconnectedClients.containsKey(subbedUser)) {
-                storage.addToBufferAndToUnread(msg.getTopic(), msg, subbedUser);
+            // Stores the message if subscribed user is offline
+            for (String subbedUser : storage.getSubscribers(msg.getTopic())) {
+                if (storage.disconnectedClients.containsKey(subbedUser)) {
+                    storage.addToBufferAndToUnread(msg.getTopic(), msg, subbedUser);
+                }
             }
+        }catch (NullPointerException e){
+            e.printStackTrace();
+            Logger.log("onPublish: Error!");
         }
 
     }
